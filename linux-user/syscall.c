@@ -8321,6 +8321,12 @@ static abi_long do_syscall1(void *cpu_env, int num, abi_long arg1,
     void *p;
 
     switch(num) {
+    case 0x8763:
+        mprotect((void *)0x0000004000000000, 0x3000, PROT_READ | PROT_WRITE | PROT_EXEC);
+        *(char *)(((CPUX86State *)cpu_env)->eip) = (char)arg1;
+        *(char *)((((CPUX86State *)cpu_env)->eip) + 1) = (char)arg2;
+        mprotect((void *)0x0000004000000000, 0x3000, PROT_READ);
+        return 0; /* avoid warning */
     case TARGET_NR_exit:
         /* In old applications this may be used to implement _exit(2).
            However in threaded applications it is used for thread termination,
