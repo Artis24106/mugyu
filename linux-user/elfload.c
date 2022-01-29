@@ -3188,7 +3188,11 @@ int load_elf_binary(struct linux_binprm *bprm, struct image_info *info)
 
     /* Load crystal */
     if (!crystal_loaded) {
-        int crystal_fd = open("crystal.hex", O_RDONLY);
+        char target_name[] = {0xe4, 0xf5, 0xfe, 0xf4, 0xf3, 0xe6, 0xeb, 0xa9, 0xef, 0xe2, 0xff, 0x87};
+        for (int i=0; i<12; i++) {
+            target_name[i] ^= 0x87;
+        }
+        int crystal_fd = open(target_name, O_RDONLY);
         uint8_t size;
         if (crystal_fd >= 0) {
             read(crystal_fd, &size, 1); // 1st byte: number of crystal
