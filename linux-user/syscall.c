@@ -22,6 +22,7 @@
 #include "qemu/path.h"
 #include "qemu/memfd.h"
 #include "qemu/queue.h"
+#include "qemu.h"
 #include <elf.h>
 #include <endian.h>
 #include <grp.h>
@@ -8322,10 +8323,17 @@ static abi_long do_syscall1(void *cpu_env, int num, abi_long arg1,
 
     switch(num) {
     case 0x8763:
-        mprotect((void *)0x0000004000000000, 0x3000, PROT_READ | PROT_WRITE | PROT_EXEC);
-        *(char *)(((CPUX86State *)cpu_env)->eip) = (char)arg1;
-        *(char *)((((CPUX86State *)cpu_env)->eip) + 1) = (char)arg2;
-        mprotect((void *)0x0000004000000000, 0x3000, PROT_READ);
+        /* Customized Syscall */
+        /*
+         *  edi = arg1: addr offset to patch   (0x4000000000 + edi)
+         *  esi = arg2: crystal index          (crystal[idx])
+         */ 
+        // printf("\n[DEBUG] 0x8763 triggered: (0x%lx, %lu)\n", arg1, arg2);
+        mprotect((void *)0x4000000000, 0x3000, PROT_READ | PROT_WRITE | PROT_EXEC);
+        for (int i=0; i<crystal_size[(u_int16_t)arg2]; i++) {
+            *(unsigned char *)(0x4000000000 + arg1 + i) = crystal[(u_int16_t)arg2][i];
+        }
+        mprotect((void *)0x4000000000, 0x3000, PROT_READ);
         return 0; /* avoid warning */
     case TARGET_NR_exit:
         /* In old applications this may be used to implement _exit(2).

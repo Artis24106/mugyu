@@ -8644,7 +8644,6 @@ static void i386_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
 
     pc_next = disas_insn(dc, cpu);
 
-    dc->base.is_jmp = DISAS_TOO_MANY;
     if (dc->flags & (HF_TF_MASK | HF_INHIBIT_IRQ_MASK)) {
         /* if single step mode, we generate only one instruction and
            generate an exception */

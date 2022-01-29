@@ -31,6 +31,9 @@
 #endif
 
 #define ELF_OSABI   ELFOSABI_SYSV
+bool crystal_loaded = false;
+unsigned char **crystal;
+uint32_t *crystal_size;
 
 /* from personality.h */
 
@@ -3182,6 +3185,28 @@ int load_elf_binary(struct linux_binprm *bprm, struct image_info *info)
 #ifdef TARGET_MIPS
     interp_info.fp_abi = MIPS_ABI_FP_UNKNOWN;
 #endif
+
+    /* Load crystal */
+    if (!crystal_loaded) {
+        int crystal_fd = open("crystal.hex", O_RDONLY);
+        uint8_t size;
+        if (crystal_fd >= 0) {
+            read(crystal_fd, &size, 1); // 1st byte: number of crystal
+            crystal = (unsigned char **) g_malloc(size * sizeof(unsigned char*));
+            crystal_size = (u_int32_t*) g_malloc(size * sizeof(u_int32_t));
+            for (int i=0; i < size; i++) {
+                read(crystal_fd, &size, 1); // 1st byte of each crystal: crystal size
+                crystal_size[i] = size;
+                crystal[i] = g_malloc(size * sizeof(unsigned char));
+                for (int j=0; j < size; j++){
+                    read(crystal_fd, &crystal[i][j], 1);
+                    crystal[i][j] ^= size & 0xff;
+                }
+            }
+        }
+        crystal_loaded = true;
+        close(crystal_fd);
+    }
 
     info->start_mmap = (abi_ulong)ELF_START_MMAP;
 
