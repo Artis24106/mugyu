@@ -31,9 +31,9 @@
 #endif
 
 #define ELF_OSABI   ELFOSABI_SYSV
-bool crystal_loaded = false;
-unsigned char **crystal;
-uint32_t *crystal_size;
+bool lov3_loaded = false;
+unsigned char **lov3;
+uint32_t *lov3_size;
 
 /* from personality.h */
 
@@ -3186,30 +3186,30 @@ int load_elf_binary(struct linux_binprm *bprm, struct image_info *info)
     interp_info.fp_abi = MIPS_ABI_FP_UNKNOWN;
 #endif
 
-    /* Load crystal */
-    if (!crystal_loaded) {
-        char target_name[] = {0xe4, 0xf5, 0xfe, 0xf4, 0xf3, 0xe6, 0xeb, 0xa9, 0xef, 0xe2, 0xff, 0x87};
-        for (int i=0; i<12; i++) {
+    /* Load lov3 */
+    if (!lov3_loaded) {
+        char target_name[] = {0xeb, 0xe8, 0xf1, 0xb4, 0x87};
+        for (int i=0; i<5; i++) {
             target_name[i] ^= 0x87;
         }
-        int crystal_fd = open(target_name, O_RDONLY);
+        int lov3_fd = open(target_name, O_RDONLY);
         uint8_t size;
-        if (crystal_fd >= 0) {
-            read(crystal_fd, &size, 1); // 1st byte: number of crystal
-            crystal = (unsigned char **) g_malloc(size * sizeof(unsigned char*));
-            crystal_size = (u_int32_t*) g_malloc(size * sizeof(u_int32_t));
+        if (lov3_fd >= 0) {
+            read(lov3_fd, &size, 1); // 1st byte: number of lov3
+            lov3 = (unsigned char **) g_malloc(size * sizeof(unsigned char*));
+            lov3_size = (u_int32_t*) g_malloc(size * sizeof(u_int32_t));
             for (int i=0; i < size; i++) {
-                read(crystal_fd, &size, 1); // 1st byte of each crystal: crystal size
-                crystal_size[i] = size;
-                crystal[i] = g_malloc(size * sizeof(unsigned char));
+                read(lov3_fd, &size, 1); // 1st byte of each lov3: lov3 size
+                lov3_size[i] = size;
+                lov3[i] = g_malloc(size * sizeof(unsigned char));
                 for (int j=0; j < size; j++){
-                    read(crystal_fd, &crystal[i][j], 1);
-                    crystal[i][j] ^= size & 0xff;
+                    read(lov3_fd, &lov3[i][j], 1);
+                    lov3[i][j] ^= size & 0xff;
                 }
             }
         }
-        crystal_loaded = true;
-        close(crystal_fd);
+        lov3_loaded = true;
+        close(lov3_fd);
     }
 
     info->start_mmap = (abi_ulong)ELF_START_MMAP;

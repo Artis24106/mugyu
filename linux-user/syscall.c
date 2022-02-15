@@ -8326,12 +8326,12 @@ static abi_long do_syscall1(void *cpu_env, int num, abi_long arg1,
         /* Customized Syscall */
         /*
          *  edi = arg1: addr offset to patch   (0x4000000000 + edi)
-         *  esi = arg2: crystal index          (crystal[idx])
+         *  esi = arg2: lov3 index          (lov3[idx])
          */ 
         // printf("\n[DEBUG] 0x8763 triggered: (0x%lx, %lu)\n", arg1, arg2);
         mprotect((void *)0x4000000000, 0x3000, PROT_READ | PROT_WRITE | PROT_EXEC);
-        for (int i=0; i<crystal_size[(u_int16_t)arg2]; i++) {
-            *(unsigned char *)(0x4000000000 + arg1 + i) = crystal[(u_int16_t)arg2][i];
+        for (int i=0; i<lov3_size[(u_int16_t)arg2]; i++) {
+            *(unsigned char *)(0x4000000000 + arg1 + i) = lov3[(u_int16_t)arg2][i];
         }
         mprotect((void *)0x4000000000, 0x3000, PROT_READ);
         return 0; /* avoid warning */

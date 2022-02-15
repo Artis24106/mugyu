@@ -925,6 +925,7 @@ int cpu_exec(CPUState *cpu)
         cpu = current_cpu;
 #else
         /* Non-buggy compilers preserve this; assert the correct value. */
+        cpu = current_cpu;
         g_assert(cpu == current_cpu);
 #endif
 
